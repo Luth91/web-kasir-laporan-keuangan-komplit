@@ -55,12 +55,6 @@ function showLogin() {
   if (u) u.focus();
 }
 
-function fillLogin(u, p) {
-  document.getElementById('loginUser').value = u;
-  document.getElementById('loginPass').value = p;
-  hideLoginError();
-}
-
 function toggleLoginPw() {
   var inp = document.getElementById('loginPass');
   inp.type = inp.type === 'password' ? 'text' : 'password';
