@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KasirKu — POS & Laporan Keuangan</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: { primary: {50:'#eef6ff',100:'#d9ebff',500:'#2563eb',600:'#1d4ed8',700:'#1e40af'} },
+        fontFamily: { sans: ['Inter','system-ui','sans-serif'] }
+      }
+    }
+  }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-100 font-sans text-slate-800">
+
+<!-- ============ LAYAR LOGIN ============ -->
+<div id="loginScreen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900">
+  <div class="login-card bg-white rounded-3xl shadow-2xl w-full max-w-sm p-7 md:p-8">
+    <div class="flex items-center gap-3 mb-1">
+      <div class="w-11 h-11 rounded-2xl bg-blue-600 flex items-center justify-center text-xl font-extrabold text-white">K</div>
+      <div>
+        <p class="font-extrabold text-lg leading-tight">KasirKu</p>
+        <p class="text-xs text-slate-500">POS + Laporan Keuangan</p>
+      </div>
+    </div>
+    <p class="text-sm text-slate-500 mt-3 mb-5">Masuk untuk melanjutkan. Sesi berakhir saat tab ditutup.</p>
+    <form id="loginForm" onsubmit="return handleLogin(event)" class="space-y-3">
+      <div>
+        <label class="lbl" for="loginUser">Username</label>
+        <input id="loginUser" class="inp" autocomplete="username" placeholder="cth: admin" autofocus>
+      </div>
+      <div>
+        <label class="lbl" for="loginPass">Password</label>
+        <div class="relative">
+          <input id="loginPass" type="password" class="inp pr-11" autocomplete="current-password" placeholder="••••••••">
+          <button type="button" onclick="toggleLoginPw()" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 px-2" title="Tampilkan/sembunyikan">👁️</button>
+        </div>
+      </div>
+      <p id="loginError" class="hidden text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2"></p>
+      <button id="loginBtn" type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl py-3 transition">Masuk</button>
+    </form>
+    <div class="mt-5 bg-slate-50 border rounded-xl p-3 text-xs text-slate-500">
+      <p class="font-semibold text-slate-600 mb-1">Akun demo (ganti setelah login):</p>
+      <div class="flex gap-2">
+        <button onclick="fillLogin('admin','admin123')" class="flex-1 bg-white border rounded-lg py-1.5 hover:border-blue-400">Admin<br><span class="font-mono">admin / admin123</span></button>
+        <button onclick="fillLogin('kasir','kasir123')" class="flex-1 bg-white border rounded-lg py-1.5 hover:border-blue-400">Kasir<br><span class="font-mono">kasir / kasir123</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="appRoot" class="hidden flex min-h-screen">
+
+  <!-- ============ SIDEBAR (Desktop) ============ -->
+  <aside id="sidebar" class="hidden md:flex w-64 shrink-0 flex-col bg-slate-900 text-slate-200 min-h-screen sticky top-0 h-screen">
+    <div class="px-6 py-6 flex items-center gap-3 border-b border-white/10">
+      <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-xl font-extrabold text-white">K</div>
+      <div>
+        <p class="font-bold text-white leading-tight">KasirKu</p>
+        <p class="text-xs text-slate-400">POS + Keuangan</p>
+      </div>
+    </div>
+    <nav class="flex-1 p-4 space-y-1 text-sm" id="navDesktop">
+      <p class="px-3 pt-2 pb-1 text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Menu Utama</p>
+      <div id="desktopMenu" class="space-y-1"><!-- diisi JS sesuai role --></div>
+      <p class="px-3 pt-3 pb-1 text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Akun</p>
+      <button onclick="logout()" class="nav-btn">⏻ <span>Keluar</span></button>
+    </nav>
+    <div class="p-4 border-t border-white/10 space-y-2">
+      <div class="bg-white/5 rounded-xl p-3 text-xs flex items-center gap-2">
+        <div id="sideAvatar" class="w-8 h-8 shrink-0 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">A</div>
+        <div class="min-w-0">
+          <p id="sideUser" class="text-white font-semibold truncate">-</p>
+          <p id="sideRole" class="text-slate-400">-</p>
+        </div>
+      </div>
+      <div class="bg-white/5 rounded-xl p-3 text-xs">
+        <p class="text-slate-400">Kas hari ini</p>
+        <p id="sidebarCash" class="text-white font-bold text-base">Rp 0</p>
+      </div>
+      <button id="btnResetDemo" onclick="resetDemoData()" class="w-full text-xs bg-white/10 hover:bg-white/20 rounded-lg py-2 transition">↺ Reset data demo</button>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div class="flex-1 min-w-0 flex flex-col">
+
+    <!-- Topbar -->
+    <header class="bg-white border-b sticky top-0 z-30">
+      <div class="flex items-center gap-3 px-4 md:px-8 py-3">
+        <button id="btnMobileMenu" class="md:hidden p-2 rounded-lg hover:bg-slate-100">☰</button>
+        <div class="flex-1">
+          <h1 id="pageTitle" class="font-bold text-lg md:text-xl">Kasir</h1>
+          <p id="pageSubtitle" class="text-xs md:text-sm text-slate-500">Kelola penjualan toko</p>
+        </div>
+        <div class="hidden sm:flex items-center gap-2 text-sm bg-slate-100 rounded-full px-4 py-2">
+          <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+          <span id="clock">--</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="text-right hidden sm:block leading-tight">
+            <p id="userName" class="text-sm font-bold">-</p>
+            <p id="userRole" class="text-[11px] text-slate-500">-</p>
+          </div>
+          <div id="userAvatar" class="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">-</div>
+          <button onclick="logout()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-red-600" title="Keluar">⏻</button>
+        </div>
+      </div>
+      <!-- Mobile nav (diisi JS sesuai role) -->
+      <nav id="mobileNav" class="md:hidden hidden px-4 pb-3 gap-2 text-xs"></nav>
+    </header>
+
+    <!-- Stat cards -->
+    <div class="px-4 md:px-8 pt-5 grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+      <div class="stat-card border-l-4 border-blue-500">
+        <p class="stat-label">Omzet Hari Ini</p>
+        <p id="statOmzet" class="stat-value">Rp 0</p>
+        <p id="statTrx" class="stat-sub">0 transaksi</p>
+      </div>
+      <div class="stat-card border-l-4 border-green-500">
+        <p class="stat-label">Laba Hari Ini</p>
+        <p id="statLaba" class="stat-value">Rp 0</p>
+        <p class="stat-sub">Penjualan − HPP</p>
+      </div>
+      <div class="stat-card border-l-4 border-amber-500">
+        <p class="stat-label">Total Stok</p>
+        <p id="statStok" class="stat-value">0</p>
+        <p id="statStokRendah" class="stat-sub text-red-500">0 barang menipis</p>
+      </div>
+      <div class="stat-card border-l-4 border-purple-500">
+        <p class="stat-label">Nilai Persediaan</p>
+        <p id="statPersediaan" class="stat-value">Rp 0</p>
+        <p class="stat-sub">Stok × harga beli</p>
+      </div>
+    </div>
+
+    <!-- Pages -->
+    <main class="flex-1 px-4 md:px-8 py-5 max-w-7xl w-full mx-auto">
+
+      <!-- ===== PAGE: KASIR ===== -->
+      <section id="page-kasir" class="page">
+        <div class="grid lg:grid-cols-3 gap-4">
+          <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border p-4 md:p-5">
+            <div class="flex flex-col sm:flex-row gap-2 mb-4">
+              <input id="kasirSearch" type="text" placeholder="🔍 Cari barang / SKU..." class="flex-1 border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+              <select id="kasirKategori" class="border rounded-xl px-3 py-2.5 text-sm bg-white">
+                <option value="">Semua kategori</option>
+              </select>
+            </div>
+            <div id="kasirGrid" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3"></div>
+          </div>
+          <div class="bg-white rounded-2xl shadow-sm border p-4 md:p-5 flex flex-col h-fit lg:sticky lg:top-24">
+            <h2 class="font-bold mb-3">🧾 Keranjang <span id="cartCount" class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">0</span></h2>
+            <div id="cartList" class="space-y-2 max-h-72 overflow-y-auto mb-3"></div>
+            <div class="border-t pt-3 space-y-1.5 text-sm">
+              <div class="flex justify-between"><span class="text-slate-500">Subtotal</span><span id="cartSubtotal" class="font-semibold">Rp 0</span></div>
+              <div class="flex justify-between text-xs"><span class="text-slate-500">Total HPP</span><span id="cartHpp" class="font-semibold text-slate-600">Rp 0</span></div>
+              <div class="flex justify-between font-bold text-base"><span>Total</span><span id="cartTotal" class="text-blue-700">Rp 0</span></div>
+              <label class="text-xs text-slate-500">Metode bayar</label>
+              <div class="grid grid-cols-3 gap-2" id="payMethods">
+                <button data-m="Tunai" class="pay-btn active">Tunai</button>
+                <button data-m="QRIS" class="pay-btn">QRIS</button>
+                <button data-m="Transfer" class="pay-btn">Transfer</button>
+              </div>
+              <input id="kasirBayar" type="number" min="0" placeholder="Nominal bayar (Rp)" class="w-full border rounded-xl px-3 py-2.5 text-sm">
+              <p class="text-xs">Kembalian: <span id="kasirKembalian" class="font-bold">Rp 0</span></p>
+              <button onclick="checkoutKasir()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl py-3 transition">Bayar & Cetak Struk</button>
+              <button onclick="clearCart()" class="w-full text-xs text-slate-500 hover:text-red-600 py-1">Kosongkan keranjang</button>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border p-4 md:p-5 mt-4">
+          <h3 class="font-bold mb-3">Transaksi penjualan hari ini</h3>
+          <div class="overflow-x-auto"><table class="table"><thead><tr><th>ID</th><th>Waktu</th><th>Item</th><th>Total / HPP / Laba</th><th>Metode</th><th>Kas</th><th>Aksi</th></tr></thead><tbody id="kasirHistory"></tbody></table></div>
+        </div>
+      </section>
+
+      <!-- ===== PAGE: PEMBELIAN ===== -->
+      <section id="page-pembelian" class="page hidden">
+        <div class="grid lg:grid-cols-3 gap-4">
+          <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border p-4 md:p-5">
+            <h2 class="font-bold mb-1">📦 Pembelian / Restok</h2>
+            <p class="text-sm text-slate-500 mb-4">Stok otomatis bertambah & tercatat sebagai kas keluar.</p>
+            <div class="grid sm:grid-cols-3 gap-3 mb-3">
+              <div><label class="lbl">Supplier</label><input id="beliSupplier" class="inp" value="Distributor ABC"></div>
+              <div><label class="lbl">Tanggal pembelian</label><input id="beliTanggal" type="date" class="inp"></div>
+              <div><label class="lbl">Metode bayar</label><select id="beliMetode" class="inp"><option>Tunai</option><option>Transfer</option><option>QRIS</option><option>Kredit</option></select></div>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-[1fr_90px_150px_auto] gap-2 mb-3">
+              <div><label class="lbl">Pilih Barang</label><select id="beliProduk" class="inp"></select></div>
+              <div><label class="lbl">Jumlah Masuk</label><input id="beliQty" type="number" min="1" value="10" class="inp" title="Jumlah masuk"></div>
+              <div><label class="lbl">Harga Beli / Unit</label><input id="beliHarga" type="number" min="0" class="inp" placeholder="Harga beli" title="Harga beli per unit"></div>
+              <div class="flex items-end"><button onclick="tambahItemBeli()" class="bg-slate-900 text-white px-4 rounded-xl text-sm font-semibold hover:bg-slate-700 h-[42px] w-full sm:w-auto">+ Tambah</button></div>
+            </div>
+            <div id="beliList" class="space-y-2 mb-3"></div>
+            <div class="flex items-center justify-between border-t pt-3">
+              <span class="font-bold">Total pembelian: <span id="beliTotal" class="text-blue-700">Rp 0</span></span>
+              <button onclick="simpanPembelian()" class="bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-2.5 rounded-xl text-sm">Simpan Pembelian</button>
+            </div>
+            <div class="mt-4 bg-blue-50 border border-blue-100 rounded-xl p-3 text-sm">
+              <p class="font-semibold mb-1">➕ Barang baru belum ada di daftar?</p>
+              <div class="grid sm:grid-cols-4 gap-2">
+                <input id="newNama" class="inp" placeholder="Nama barang">
+                <input id="newKategori" class="inp" placeholder="Kategori">
+                <input id="newBeli" type="number" class="inp" placeholder="Harga beli">
+                <input id="newJual" type="number" class="inp" placeholder="Harga jual">
+              </div>
+              <button onclick="tambahProdukBaru()" class="mt-2 text-xs bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold">Simpan barang baru</button>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl shadow-sm border p-4 md:p-5">
+            <h3 class="font-bold mb-3">Riwayat pembelian</h3>
+            <div id="beliHistory" class="space-y-2 max-h-[600px] overflow-y-auto"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== PAGE: STOK ===== -->
+      <section id="page-stok" class="page hidden">
+        <div class="bg-white rounded-2xl shadow-sm border p-4 md:p-5">
+          <div class="flex flex-col md:flex-row gap-2 md:items-center mb-4">
+            <div class="flex-1"><h2 class="font-bold">🏷️ Stok Barang</h2><p class="text-sm text-slate-500">Klik ✏️ untuk edit, 🗑️ untuk hapus.</p></div>
+            <input id="stokSearch" class="inp md:w-64" placeholder="🔍 Cari barang...">
+            <button onclick="openProdukModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl">+ Tambah Barang</button>
+          </div>
+          <div id="lowStockAlert"></div>
+          <div class="overflow-x-auto"><table class="table"><thead><tr><th>SKU</th><th>Nama</th><th>Kategori</th><th>Beli</th><th>Jual</th><th>Stok</th><th>Nilai</th><th>Aksi</th></tr></thead><tbody id="stokTable"></tbody></table></div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border p-4 md:p-5 mt-4">
+          <h3 class="font-bold mb-1">🔄 Riwayat Keluar–Masuk Barang</h3>
+          <p class="text-xs text-slate-500 mb-3">Tercatat otomatis setiap penjualan (keluar) & pembelian (masuk). 20 terakhir.</p>
+          <div class="overflow-x-auto"><table class="table"><thead><tr><th>Waktu</th><th>Barang</th><th>Tipe</th><th>Qty</th><th>Stok</th><th>Ref</th></tr></thead><tbody id="movesTable"></tbody></table></div>
+        </div>
+      </section>
+
+      <!-- ===== PAGE: KEUANGAN ===== -->
+      <section id="page-keuangan" class="page hidden">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-4">
+          <div class="stat-card border-l-4 border-green-500"><p class="stat-label">Kas Masuk (filter)</p><p id="keuMasuk" class="stat-value">Rp 0</p><p id="keuNett" class="stat-sub">-</p></div>
+          <div class="stat-card border-l-4 border-red-500"><p class="stat-label">Kas Keluar (filter)</p><p id="keuKeluar" class="stat-value">Rp 0</p><p class="stat-sub">Pembelian + beban + pelunasan</p></div>
+          <div class="stat-card border-l-4 border-blue-500"><p class="stat-label">Saldo Kas Saat Ini</p><p id="keuSaldoKas" class="stat-value">Rp 0</p><p class="stat-sub">Saldo awal + masuk − keluar</p></div>
+          <div class="stat-card border-l-4 border-amber-500"><p class="stat-label">Total Hutang</p><p id="keuHutang" class="stat-value">Rp 0</p><p class="stat-sub">Saldo awal + pembelian kredit</p></div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border p-4 md:p-5">
+          <div class="flex flex-col md:flex-row gap-2 md:items-end mb-4">
+            <div class="flex-1"><h2 class="font-bold">💰 Buku Kas & Hutang</h2><p class="text-sm text-slate-500">Terisi otomatis dari kasir, pembelian & beban. Hutang bisa dilunasi.</p></div>
+            <input id="keuSearch" class="inp md:w-56" placeholder="🔍 Cari keterangan / ID...">
+            <div><label class="lbl">Dari</label><input id="keuDari" type="date" class="inp"></div>
+            <div><label class="lbl">Sampai</label><input id="keuSampai" type="date" class="inp"></div>
+          </div>
+          <div class="overflow-x-auto"><table class="table"><thead><tr><th>Tanggal</th><th>Arus</th><th>Keterangan</th><th>Jumlah</th><th>Akun</th><th>Aksi</th></tr></thead><tbody id="keuTable"></tbody></table></div>
+        </div>
+      </section>
+
+      <!-- ===== PAGE: LAPORAN ===== -->
+      <section id="page-laporan" class="page hidden">
+        <div class="bg-white rounded-2xl shadow-sm border p-4 md:p-5 mb-4">
+          <div class="flex flex-col lg:flex-row gap-3 lg:items-end">
+            <div class="flex-1"><h2 class="font-bold">📊 Laporan Keuangan</h2><p class="text-sm text-slate-500">Otomatis dari data penjualan & pembelian. Pilih rentang tanggal:</p></div>
+            <div class="flex flex-wrap items-end gap-2">
+              <div class="flex gap-2" id="lapPresets">
+                <button data-preset="hari" class="preset-btn">Hari Ini</button>
+                <button data-preset="bulan" class="preset-btn active">Bulan Ini</button>
+                <button data-preset="custom" class="preset-btn">Custom</button>
+              </div>
+              <div id="lapCustomDates" class="hidden flex gap-2">
+                <div><label class="lbl">Dari</label><input id="lapDari" type="date" class="inp"></div>
+                <div><label class="lbl">Sampai</label><input id="lapSampai" type="date" class="inp"></div>
+                <button onclick="renderLaporan()" class="bg-slate-900 text-white px-4 rounded-xl text-sm font-semibold h-[42px] self-end">OK</button>
+              </div>
+              <button onclick="window.print()" class="bg-slate-100 hover:bg-slate-200 px-4 rounded-xl text-sm font-semibold h-[42px] self-end transition">🖨️ Cetak</button>
+            </div>
+          </div>
+          <div class="flex gap-2 mt-4" id="lapTabs">
+            <button data-tab="labarugi" class="lap-tab active">Laba Rugi</button>
+            <button data-tab="neraca" class="lap-tab">Neraca</button>
+            <button data-tab="aruskas" class="lap-tab">Arus Kas</button>
+          </div>
+        </div>
+        <div id="lapContent"></div>
+      </section>
+
+      <!-- ===== PAGE: PENGATURAN AKUN (admin) ===== -->
+      <section id="page-pengaturan" class="page hidden">
+        <div class="grid lg:grid-cols-3 gap-4">
+          <div class="bg-white rounded-2xl shadow-sm border p-4 md:p-5 h-fit">
+            <div class="flex items-center gap-3 mb-4">
+              <div id="pgMyAvatar" class="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-extrabold text-lg">A</div>
+              <div>
+                <p id="pgMyNama" class="font-bold">-</p>
+                <p class="text-xs text-slate-500"><span id="pgMyUsername">@-</span> • <span id="pgMyRole">-</span></p>
+              </div>
+            </div>
+            <h3 class="font-bold text-sm mb-2">🔑 Ganti Password Saya</h3>
+            <div class="space-y-2">
+              <div><label class="lbl">Password lama</label><input id="pgOldPw" type="password" class="inp" autocomplete="current-password"></div>
+              <div><label class="lbl">Password baru (min. 6)</label><input id="pgNewPw" type="password" class="inp" autocomplete="new-password"></div>
+              <div><label class="lbl">Konfirmasi password baru</label><input id="pgNewPw2" type="password" class="inp" autocomplete="new-password"></div>
+              <button onclick="saveOwnPassword()" class="w-full bg-slate-900 hover:bg-slate-700 text-white text-sm font-bold rounded-xl py-2.5 transition">Simpan Password</button>
+            </div>
+          </div>
+          <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border p-4 md:p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="flex-1">
+                <h2 class="font-bold">👥 Kelola Pengguna</h2>
+                <p class="text-sm text-slate-500">Kasir hanya bisa membuka menu Kasir. Admin membuka semua menu kecuali Kasir.</p>
+              </div>
+              <button onclick="openUserForm()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl">+ Tambah</button>
+            </div>
+            <div id="pgUserForm" class="hidden bg-slate-50 border rounded-xl p-3 mb-4">
+              <p id="ufTitle" class="font-bold text-sm mb-2">Tambah Pengguna</p>
+              <div class="grid sm:grid-cols-2 gap-2">
+                <div><label class="lbl">Nama lengkap</label><input id="ufNama" class="inp"></div>
+                <div><label class="lbl">Username</label><input id="ufUsername" class="inp" placeholder="huruf/angka/._-"></div>
+                <div><label class="lbl">Password</label><input id="ufPassword" type="password" class="inp" autocomplete="new-password"></div>
+                <div><label class="lbl">Role</label><select id="ufRole" class="inp"><option value="kasir">Kasir — hanya menu Kasir</option><option value="admin">Admin — semua menu kecuali Kasir</option></select></div>
+              </div>
+              <div class="flex gap-2 mt-3">
+                <button onclick="closeUserForm()" class="flex-1 bg-white border rounded-xl py-2 text-sm font-semibold">Batal</button>
+                <button onclick="saveUserForm()" class="flex-1 bg-blue-600 text-white rounded-xl py-2 text-sm font-bold">Simpan</button>
+              </div>
+            </div>
+            <div class="overflow-x-auto"><table class="table"><thead><tr><th>Nama</th><th>Username</th><th>Role</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="pgUserRows"></tbody></table></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+    <footer class="text-center text-xs text-slate-400 pb-6">KasirKu v1.0 — data tersimpan di LocalStorage browser • Tanpa database</footer>
+  </div>
+</div>
+
+<!-- Modal produk -->
+<div id="produkModal" class="hidden fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-md p-6">
+    <h3 id="modalTitle" class="font-bold text-lg mb-4">Tambah Barang</h3>
+    <input type="hidden" id="fId">
+    <div class="grid grid-cols-2 gap-3">
+      <div class="col-span-2"><label class="lbl">Nama barang</label><input id="fNama" class="inp"></div>
+      <div><label class="lbl">SKU</label><input id="fSku" class="inp"></div>
+      <div><label class="lbl">Kategori</label><input id="fKategori" class="inp" placeholder="cth: Sembako"></div>
+      <div><label class="lbl">Harga beli</label><input id="fBeli" type="number" class="inp"></div>
+      <div><label class="lbl">Harga jual</label><input id="fJual" type="number" class="inp"></div>
+      <div><label class="lbl">Stok</label><input id="fStok" type="number" class="inp"></div>
+      <div><label class="lbl">Stok minimum</label><input id="fMin" type="number" class="inp" value="10"></div>
+    </div>
+    <div class="flex gap-2 mt-5">
+      <button onclick="closeProdukModal()" class="flex-1 bg-slate-100 rounded-xl py-2.5 text-sm font-semibold">Batal</button>
+      <button onclick="simpanProdukModal()" class="flex-1 bg-blue-600 text-white rounded-xl py-2.5 text-sm font-bold">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Struk modal -->
+<div id="strukModal" class="hidden fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-sm p-6">
+    <div id="strukBody" class="font-mono text-sm"></div>
+    <div class="flex gap-2 mt-4">
+      <button onclick="document.getElementById('strukModal').classList.add('hidden')" class="flex-1 bg-slate-100 rounded-xl py-2.5 text-sm font-semibold">Tutup</button>
+      <button onclick="window.print()" class="flex-1 bg-blue-600 text-white rounded-xl py-2.5 text-sm font-bold">Cetak</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast animasi (diisi otomatis oleh js/ui.js) -->
+<div id="toastStack"></div>
+
+<!-- Dialog konfirmasi animasi (dipakai semua modul via UI.confirm) -->
+<div id="confirmModal" class="hidden fixed inset-0 z-[60] items-center justify-center p-4">
+  <div id="confirmBackdrop" class="absolute inset-0 bg-slate-900/50"></div>
+  <div id="confirmCard" class="relative bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
+    <div id="confirmIcon" class="ui-confirm-icon ui-confirm-primary">?</div>
+    <h3 id="confirmTitle" class="font-bold text-base mb-1">Konfirmasi</h3>
+    <p id="confirmMessage" class="text-sm text-slate-500 mb-5">Apakah Anda yakin?</p>
+    <div class="flex gap-2">
+      <button id="confirmCancel" class="flex-1 bg-slate-100 hover:bg-slate-200 rounded-xl py-2.5 text-sm font-semibold transition">Batal</button>
+      <button id="confirmOk" class="ui-confirm-ok ui-confirm-ok-primary">Ya, lanjutkan</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/store.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/kasir.js"></script>
+<script src="js/pembelian.js"></script>
+<script src="js/stok.js"></script>
+<script src="js/keuangan.js"></script>
+<script src="js/laporan.js"></script>
+<script src="js/pengaturan.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+/* KasirKu — custom styles (di atas Tailwind CDN) */
+body { font-family: 'Inter', system-ui, sans-serif; }
+
+.nav-btn {
+  display: flex; align-items: center; gap: .6rem;
+  width: 100%; text-align: left;
+  padding: .65rem .9rem; border-radius: .75rem;
+  color: #cbd5e1; font-weight: 500;
+  transition: all .15s ease;
+}
+.nav-btn:hover { background: rgba(255,255,255,.08); color: #fff; }
+.nav-btn.active { background: #2563eb; color: #fff; font-weight: 700; }
+
+.nav-btn-mobile {
+  background: #f1f5f9; border-radius: .75rem; padding: .5rem .25rem;
+  font-weight: 600; color: #475569; line-height: 1.3;
+}
+.nav-btn-mobile.active { background: #2563eb; color: #fff; }
+
+.stat-card { background: #fff; border-radius: 1rem; padding: 1rem 1.1rem; box-shadow: 0 1px 2px rgba(0,0,0,.05); border: 1px solid #e2e8f0; }
+.stat-label { font-size: .75rem; color: #64748b; font-weight: 500; }
+.stat-value { font-size: 1.15rem; font-weight: 800; margin-top: 2px; }
+.stat-sub { font-size: .72rem; color: #94a3b8; margin-top: 2px; }
+
+.table { width: 100%; font-size: .83rem; border-collapse: collapse; }
+.table thead tr { background: #f8fafc; text-align: left; }
+.table th { padding: .6rem .75rem; font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; color: #64748b; white-space: nowrap; }
+.table td { padding: .6rem .75rem; border-top: 1px solid #f1f5f9; vertical-align: middle; }
+.table tbody tr:hover { background: #f8fafc; }
+
+.inp { width: 100%; border: 1px solid #e2e8f0; border-radius: .75rem; padding: .6rem .8rem; font-size: .85rem; outline: none; background: #fff; }
+.inp:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+.lbl { font-size: .72rem; font-weight: 600; color: #64748b; display: block; margin-bottom: 4px; }
+
+.pay-btn { border: 1px solid #e2e8f0; border-radius: .75rem; padding: .5rem; font-size: .78rem; font-weight: 600; color: #64748b; }
+.pay-btn.active { background: #2563eb; border-color: #2563eb; color: #fff; }
+
+.qty-btn { width: 1.6rem; height: 1.6rem; border-radius: .5rem; background: #f1f5f9; font-weight: 800; line-height: 1; }
+.qty-btn:hover { background: #e2e8f0; }
+
+.badge { background: #eef2ff; color: #4338ca; font-size: .7rem; font-weight: 700; padding: .15rem .6rem; border-radius: 999px; }
+.badge-green { background: #dcfce7; color: #15803d; font-size: .68rem; font-weight: 700; padding: .15rem .55rem; border-radius: 999px; }
+.badge-red { background: #fee2e2; color: #b91c1c; font-size: .68rem; font-weight: 700; padding: .15rem .55rem; border-radius: 999px; }
+
+.lap-tab { padding: .55rem 1.1rem; border-radius: .75rem; font-size: .83rem; font-weight: 600; background: #f1f5f9; color: #64748b; }
+.lap-tab.active { background: #0f172a; color: #fff; }
+
+.preset-btn { padding: .5rem 1rem; border-radius: .75rem; font-size: .8rem; font-weight: 600; background: #f1f5f9; color: #64748b; border: 1px solid transparent; transition: all .15s ease; }
+.preset-btn:hover { background: #e2e8f0; }
+.preset-btn.active { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+
+/* Kartu ringkasan laporan */
+.kpi { background: #fff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: .8rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+.kpi-label { font-size: .7rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.kpi-value { font-size: 1.1rem; font-weight: 800; margin-top: 2px; }
+.kpi-sub { font-size: .7rem; color: #94a3b8; margin-top: 2px; }
+
+/* ============ Toast animasi kustom ============ */
+#toastStack {
+  position: fixed; bottom: 1.25rem; left: 50%; transform: translateX(-50%);
+  z-index: 70; display: flex; flex-direction: column; gap: .5rem; align-items: center;
+  width: min(92vw, 380px); pointer-events: none;
+}
+.ui-toast {
+  pointer-events: auto; cursor: pointer; position: relative; overflow: hidden;
+  display: flex; align-items: center; gap: .6rem; width: 100%;
+  background: #0f172a; color: #fff; font-size: .83rem; font-weight: 500;
+  padding: .7rem .9rem; border-radius: .9rem;
+  box-shadow: 0 10px 30px rgba(2,6,23,.35); border: 1px solid rgba(255,255,255,.08);
+  animation: ui-toast-in .38s cubic-bezier(.21,1.02,.55,1.1) both;
+}
+.ui-toast.leaving { animation: ui-toast-out .24s ease-in both; }
+.ui-toast-icon {
+  flex-shrink: 0; width: 1.5rem; height: 1.5rem; border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .8rem; font-weight: 800;
+}
+.ui-toast-msg { flex: 1; line-height: 1.35; }
+.ui-toast-bar {
+  position: absolute; left: 0; bottom: 0; height: 3px; width: 100%;
+  animation-name: ui-toast-bar; animation-timing-function: linear; animation-fill-mode: forwards;
+  transform-origin: left;
+}
+.ui-toast-success { border-left: 4px solid #22c55e; }
+.ui-toast-success .ui-toast-icon { background: #22c55e; }
+.ui-toast-success .ui-toast-bar { background: #22c55e; }
+.ui-toast-error { border-left: 4px solid #ef4444; }
+.ui-toast-error .ui-toast-icon { background: #ef4444; }
+.ui-toast-error .ui-toast-bar { background: #ef4444; }
+.ui-toast-warning { border-left: 4px solid #f59e0b; }
+.ui-toast-warning .ui-toast-icon { background: #f59e0b; }
+.ui-toast-warning .ui-toast-bar { background: #f59e0b; }
+.ui-toast-info { border-left: 4px solid #3b82f6; }
+.ui-toast-info .ui-toast-icon { background: #3b82f6; }
+.ui-toast-info .ui-toast-bar { background: #3b82f6; }
+@keyframes ui-toast-in {
+  from { opacity: 0; transform: translateY(18px) scale(.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes ui-toast-out {
+  to { opacity: 0; transform: translateY(10px) scale(.96); }
+}
+@keyframes ui-toast-bar { from { width: 100%; } to { width: 0; } }
+
+/* ============ Dialog konfirmasi animasi ============ */
+#confirmModal { display: none; }
+#confirmModal.ui-open { display: flex; }
+#confirmModal.ui-open #confirmBackdrop { animation: ui-fade-in .22s ease-out both; }
+#confirmModal.ui-open #confirmCard { animation: ui-pop-in .32s cubic-bezier(.21,1.02,.55,1.12) both; }
+.ui-confirm-icon {
+  width: 2.75rem; height: 2.75rem; border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; font-weight: 800; margin-bottom: .75rem;
+}
+.ui-confirm-danger { background: #fee2e2; color: #b91c1c; }
+.ui-confirm-primary { background: #dbeafe; color: #1d4ed8; }
+.ui-confirm-ok {
+  flex: 1; border-radius: .75rem; padding: .65rem; font-size: .85rem; font-weight: 700;
+  transition: transform .08s ease, filter .15s ease;
+}
+.ui-confirm-ok:active { transform: scale(.97); }
+.ui-confirm-ok-danger { background: #dc2626; color: #fff; }
+.ui-confirm-ok-danger:hover { background: #b91c1c; }
+.ui-confirm-ok-primary { background: #2563eb; color: #fff; }
+.ui-confirm-ok-primary:hover { background: #1d4ed8; }
+@keyframes ui-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ui-pop-in {
+  from { opacity: 0; transform: scale(.88) translateY(14px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-toast, #confirmModal.ui-open #confirmCard { animation-duration: .01s; }
+}
+
+/* ============ Layar login ============ */
+.login-card { animation: ui-toast-in .45s cubic-bezier(.21,1.02,.55,1.05) both; }
+.login-card.shake { animation: ui-shake .4s ease both; }
+@keyframes ui-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-9px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(4px); }
+}
+
+@media print {
+  header, aside, footer, #toastStack, #confirmModal, #loginScreen, .stat-card { display: none !important; }
+  body { background: #fff; }
+}
